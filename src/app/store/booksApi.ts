@@ -1,5 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+import { IBook } from 'app/store/IBook';
+
 export type fetchAllBooksArgs = {
 	query: string;
 	startIndex?: number;
@@ -8,13 +10,19 @@ export type fetchAllBooksArgs = {
 	category?: string;
 };
 
+interface IAllBooks {
+	kind: string;
+	totalItems: number;
+	items: IBook[];
+}
+
 const booksApi = createApi({
 	reducerPath: 'booksApi',
 	baseQuery: fetchBaseQuery({
 		baseUrl: 'https://www.googleapis.com/books/v1/volumes'
 	}),
 	endpoints: (builder) => ({
-		fetchAllBooks: builder.query<any, fetchAllBooksArgs>({
+		fetchAllBooks: builder.query<IAllBooks, fetchAllBooksArgs>({
 			query: ({
 				query,
 				startIndex = 0,
@@ -23,7 +31,7 @@ const booksApi = createApi({
 				category
 			}) => {
 				let searchParam = `${query}`;
-				if (category) {
+				if (category !== 'all') {
 					searchParam += `+subject:${category}`;
 				}
 
@@ -39,8 +47,8 @@ const booksApi = createApi({
 				};
 			}
 		}),
-		fetchBook: builder.query({
-			query: (id: string) => ({
+		fetchBook: builder.query<IBook, string>({
+			query: (id) => ({
 				url: `/${id}`,
 				params: {
 					key: import.meta.env.VITE_API_KEY
@@ -51,4 +59,4 @@ const booksApi = createApi({
 });
 
 export const { useFetchAllBooksQuery, useFetchBookQuery } = booksApi;
-export { booksApi };
+export default booksApi;
